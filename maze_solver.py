@@ -17,6 +17,24 @@ class Graph(object):
     def __init__(self):
         self.nodes = []
 
+    def __str__(self):
+        graph_str = ''
+        sorted_nodes = []
+        counter = 0
+        for node in self.nodes:
+            for node in self.nodes:
+                if node.distance == counter:
+                    sorted_nodes.append(node)
+            counter+=1
+            
+        for node in sorted_nodes:
+            distance = node.distance
+            while node != node.prev_node:
+                graph_str += '(' + str(node.x) + ',' + str(node.y) + ') ' + '-> '
+                node = node.prev_node
+            graph_str += '(' + str(node.x) + ',' + str(node.y) + ')  Distance = ' + str(distance) + '\n'
+        return graph_str
+
     def get_node(self, x, y): # Get a specific node
         for node in self.nodes: # Go through all nodes currently in graph
             if node.x == x and node.y == y:
@@ -166,6 +184,20 @@ def dijkstras_algorithm(graph, start_node):
 
     return graph
 
+# Writes the path onto txt file of end_pos to start_pos
+def graph_to_txt(com_graph, end_pos, maze, path_name):
+    cur_node = com_graph.get_node(end_pos[0], end_pos[1]).prev_node     # Set current node to node along shortest path from end_pos to start_pos
+    while cur_node != cur_node.prev_node:                               # Loop through shortest path nodes
+        maze[cur_node.x][cur_node.y] = 'x'                              # Set character along path to 'x'
+        cur_node = cur_node.prev_node                                   # Go to next node along path
+    maze_str = ''
+    for i in maze:                                                      # Concatenate matrix into single string
+        for c in i:
+            maze_str += c
+        maze_str += '\n'
+    text_file = open(path_name, 'w')
+    text_file.write(maze_str)                                           # Write string to txt file
+    return maze
 
 def plot_maze(maze, visited, current):
     """
@@ -235,9 +267,11 @@ if selected_algo == 'dijkstra':
 elif selected_algo == 'astar':
     pass
     # TODO: 
-    
-for node in com_graph.nodes:
-    print('(', node.x, ',', node.y, ') ', '->', 
-          ' (', node.prev_node.x, ',', node.prev_node.y, ')', sep='')
+out_path = os.path.splitext(os.path.basename(path_name))[0] + '_out.txt'    # add '_out' for output txt name
+graph_to_txt(com_graph, end_pos, maze_mat, out_path)
+
+print(com_graph)
+
+
 
 
