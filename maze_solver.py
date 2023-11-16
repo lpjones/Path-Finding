@@ -181,6 +181,36 @@ def plot_maze(maze, visited, current):
     pass  # Your code here
 
 
+# Output txt file of completed graph
+def solved_maze_out(com_graph, maze_mat, start_pos, end_pos, path_name):
+    
+    # Start from the end position, look at com_graph to get next position to plot
+    curr_pos = end_pos
+
+    while(curr_pos[0] != start_pos[0] or curr_pos[1] != start_pos[1]): # Check to see if you've reached the start pos
+        curr_row = curr_pos[0]
+        curr_col = curr_pos[1]
+
+        if (maze_mat[curr_row][curr_col] != 's' and maze_mat[curr_row][curr_col] != 'e'):
+            maze_mat[curr_row][curr_col] = 'x' # Draw the x on the maze
+       
+        new_pos = (com_graph.get_node(curr_row, curr_col).prev_node.x, # Set the new position
+                   com_graph.get_node(curr_row, curr_col).prev_node.y)
+        
+        curr_pos = new_pos # Update the curr_pos to the new_pos (the previous node)
+
+    print(maze_mat)
+    solved_maze_mat = maze_mat
+
+    txt_file_name = os.path.splitext(os.path.basename(path_name))[0] # Get the txt file's name
+    out_file_name = f"{txt_file_name}_out.txt" # Set the output file's name
+
+    # Output matrix to txt file
+    with open(out_file_name, 'w') as file:
+        for row in solved_maze_mat:
+            row_str = ''.join(map(str,row)) 
+            file.write(row_str + '\n')
+
 
 """
 Parse command-line arguments and solve the maze using the selected algorithm.
@@ -228,16 +258,19 @@ bin_mat, start_pos, end_pos = binary_maze(maze_mat)
 
 graph = mat_to_graph(bin_mat)
 
-com_graph = None # Complete Graph
+com_graph = None # Completed Graph
 
 if selected_algo == 'dijkstra':
     com_graph = dijkstras_algorithm(graph, start_pos)
 elif selected_algo == 'astar':
     pass
     # TODO: 
-    
+
+
 for node in com_graph.nodes:
     print('(', node.x, ',', node.y, ') ', '->', 
           ' (', node.prev_node.x, ',', node.prev_node.y, ')', sep='')
 
 
+# Output solved maze txt file
+solved_maze_out(com_graph, maze_mat, start_pos, end_pos, path_name)
