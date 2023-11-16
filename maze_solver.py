@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import os
+from matplotlib.patches import Polygon, Circle # For the triangles and circles on the graph
 
 class Node(object):
     def __init__(self, x, y, distance=float('inf'), prev_node=None, visited=False):
@@ -12,10 +13,27 @@ class Node(object):
         self.edges = [] # Neighbors of Node
         self.prev_node = prev_node # Previous node in the current best path
 
-
 class Graph(object):
     def __init__(self):
         self.nodes = []
+
+    def __str__(self):
+        graph_str = ''
+        sorted_nodes = []
+        counter = 0
+        for node in self.nodes:
+            for node in self.nodes:
+                if node.distance == counter:
+                    sorted_nodes.append(node)
+            counter+=1
+            
+        for node in sorted_nodes:
+            distance = node.distance
+            while node != node.prev_node:
+                graph_str += '(' + str(node.x) + ',' + str(node.y) + ') ' + '-> '
+                node = node.prev_node
+            graph_str += '(' + str(node.x) + ',' + str(node.y) + ')  Distance = ' + str(distance) + '\n'
+        return graph_str
 
     def get_node(self, x, y): # Get a specific node
         for node in self.nodes: # Go through all nodes currently in graph
@@ -31,12 +49,10 @@ class Graph(object):
         new_node = Node(x, y, distance, visited)
         self.nodes.append(new_node)
 
-
     def append_edge(self, node_1, node_2):
         node_1.edges.append(node_2)
         node_2.edges.append(node_1)
         
-    
 class PriorityQueue(object):
     def __init__(self):
         self.queue = []
@@ -134,7 +150,7 @@ def mat_to_graph(bin_mat):
     return graph
 
 
-def dijkstras_algorithm(graph, start_node):
+def dijkstras_algorithm(graph, start_node, maze_mat_to_plot, vis_flag):
     """
     Implement Dijkstra's algorithm to find the shortest path through the maze from start to end.
     
@@ -153,21 +169,43 @@ def dijkstras_algorithm(graph, start_node):
     while len(pq.queue) > 0:
         curr_node = pq.pop()
         curr_node.visited = True
+        
+        if vis_flag == True:
+        # Update maze matrix, and plot visited node.
+            if (maze_mat_to_plot[curr_node.x][curr_node.y] == ' '):
+                maze_mat_to_plot[curr_node.x][curr_node.y] = 'v'
+                plot_maze(maze_mat_to_plot, 0.01, 0, 0)
 
         for neighbor in curr_node.edges:
 
-            # Only consider this new path if it's better than any path we've
-            # already found.
+            # Only consider this new path if it's better than any path we've already found.
             if curr_node.distance + 1 < neighbor.distance:
                 neighbor.distance = curr_node.distance + 1
                 neighbor.prev_node = curr_node # Update the best path
                 if neighbor.visited == False:
                     pq.push(neighbor)
+                
 
     return graph
 
+# Writes the path onto txt file of end_pos to start_pos
+def graph_to_txt(com_graph, end_pos, maze, path_name):
 
-def plot_maze(maze, visited, current):
+    cur_node = com_graph.get_node(end_pos[0], end_pos[1]).prev_node     # Set current node to node along shortest path from end_pos to start_pos
+    while cur_node != cur_node.prev_node:                               # Loop through shortest path nodes
+        maze[cur_node.x][cur_node.y] = 'x'                              # Set character along path to 'x'
+        cur_node = cur_node.prev_node                                   # Go to next node along path
+    maze_str = ''
+
+    for i in maze:                                                      # Concatenate matrix into single string
+        for c in i:
+            maze_str += c
+        maze_str += '\n'
+    text_file = open(path_name, 'w')
+    text_file.write(maze_str)                                            # Write string to txt file
+    return maze
+
+def plot_maze(maze, delay, visited, current):
     """
     Visualize the maze, the visited cells, the current position, and the end position.
     
@@ -178,38 +216,38 @@ def plot_maze(maze, visited, current):
 
     Add more parameters if you see fit
     """
-    pass  # Your code here
-
-
-# Output txt file of completed graph
-def solved_maze_out(com_graph, maze_mat, start_pos, end_pos, path_name):
     
-    # Start from the end position, look at com_graph to get next position to plot
-    curr_pos = end_pos
+    # Convert the maze characters to colors
+    colors = {'#': 1, ' ': 0, 'x': 0, 's': 0, 'e': 0, 'v': 0}
 
-    while(curr_pos[0] != start_pos[0] or curr_pos[1] != start_pos[1]): # Check to see if you've reached the start pos
-        curr_row = curr_pos[0]
-        curr_col = curr_pos[1]
+    # Convert the maze characters to color codes
+    color_matrix = np.array([[colors[character] for character in row] for row in maze])
 
-        if (maze_mat[curr_row][curr_col] != 's' and maze_mat[curr_row][curr_col] != 'e'):
-            maze_mat[curr_row][curr_col] = 'x' # Draw the x on the maze
-       
-        new_pos = (com_graph.get_node(curr_row, curr_col).prev_node.x, # Set the new position
-                   com_graph.get_node(curr_row, curr_col).prev_node.y)
-        
-        curr_pos = new_pos # Update the curr_pos to the new_pos (the previous node)
+    # Display the maze as an image
+    plt.imshow(color_matrix, cmap='binary', interpolation='nearest')
 
-    print(maze_mat)
-    solved_maze_mat = maze_mat
+    # Plot Blue and Red triangles where Start and End are
+    for y in range(len(maze)):
+        for x in range(len(maze[y])):
+            if maze[y][x] == 's': # plot "start" as a blue triangle
+                blue_tri = Polygon([[x - 0.15, y + 0.15], [x + 0.15, y + 0.15], [x, y - 0.15]], color = 'blue')
+                plt.gca().add_patch(blue_tri)
+            
+            elif maze[y][x] == 'e': # plot "end" as a red triangle
+                red_tri = Polygon([[x - 0.15, y + 0.15], [x + 0.15, y + 0.15], [x, y - 0.15]], color = 'red')
+                plt.gca().add_patch(red_tri)
 
-    txt_file_name = os.path.splitext(os.path.basename(path_name))[0] # Get the txt file's name
-    out_file_name = f"{txt_file_name}_out.txt" # Set the output file's name
+            elif maze[y][x] == 'v': # Plot the visited nodes as yellow circles
+                yellow_circ = Circle((x, y), radius = 0.15, color = 'yellow')
+                plt.gca().add_patch(yellow_circ)
 
-    # Output matrix to txt file
-    with open(out_file_name, 'w') as file:
-        for row in solved_maze_mat:
-            row_str = ''.join(map(str,row)) 
-            file.write(row_str + '\n')
+            elif maze[y][x] == 'x': # Plot the best path as green circles
+                green_circ = Circle((x, y), radius = 0.15, color = 'green')
+                plt.gca().add_patch(green_circ)
+
+
+    plt.axis('off')
+    plt.pause(delay) # Display the graph longer for the completed solutiong graph.
 
 
 """
@@ -250,6 +288,7 @@ args = parser.parse_args()
 check_input_paths(args) # Check args for invalid inputs
 
 selected_algo = args.algorithm # Either dijkstra or astar
+vis_flag = args.vis # True if we want live visualization on
 path_name = args.input_files[0] 
 
 maze_mat = read_maze(path_name)
@@ -259,18 +298,22 @@ bin_mat, start_pos, end_pos = binary_maze(maze_mat)
 graph = mat_to_graph(bin_mat)
 
 com_graph = None # Completed Graph
+maze_mat_to_plot = maze_mat.copy() # Make a copy of maze matrix primarily for plotting the matrix
 
 if selected_algo == 'dijkstra':
-    com_graph = dijkstras_algorithm(graph, start_pos)
+    com_graph = dijkstras_algorithm(graph, start_pos, maze_mat_to_plot, vis_flag)
 elif selected_algo == 'astar':
     pass
     # TODO: 
 
+out_path = os.path.splitext(os.path.basename(path_name))[0] + '_out.txt' # add '_out' for output txt name
+graph_to_txt(com_graph, end_pos, maze_mat, out_path)
 
-for node in com_graph.nodes:
-    print('(', node.x, ',', node.y, ') ', '->', 
-          ' (', node.prev_node.x, ',', node.prev_node.y, ')', sep='')
-
+print(com_graph)
 
 # Output solved maze txt file
-solved_maze_out(com_graph, maze_mat, start_pos, end_pos, path_name)
+com_maze = graph_to_txt(com_graph, end_pos, maze_mat, out_path)
+
+# Plot the solved maze with best path
+if vis_flag == True:
+    plot_maze(com_maze, 5, 0, 0)
