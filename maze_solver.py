@@ -177,7 +177,7 @@ def dijkstras_astar_algorithm(graph, start_node, end_pos, maze_mat_to_plot, vis_
         # Update maze matrix, and plot visited node.
             if (maze_mat_to_plot[curr_node.x][curr_node.y] == ' '):
                 maze_mat_to_plot[curr_node.x][curr_node.y] = 'v'
-                plot_maze(maze_mat_to_plot, 0.2, 0, 0)
+                plot_maze(maze_mat_to_plot, 0.2)
 
         for neighbor in curr_node.edges:
 
@@ -214,7 +214,7 @@ def graph_to_txt(com_graph, end_pos, maze, path_name):
     text_file.write(maze_str)                                            # Write string to txt file
     return maze
 
-def plot_maze(maze, delay, visited, current):
+def plot_maze(maze, delay):
     """
     Visualize the maze, the visited cells, the current position, and the end position.
     
@@ -320,5 +320,5 @@ com_maze = graph_to_txt(com_graph, end_pos, maze_mat, out_path)
 
 # Plot the solved maze with best path
 if vis_flag:
-    plot_maze(com_maze, 0, 0, 0)
+    plot_maze(com_maze, 0)
     plt.show(block=True)
