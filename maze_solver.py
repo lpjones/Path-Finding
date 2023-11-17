@@ -109,18 +109,22 @@ def read_maze(file_path):
     - maze: 2D numpy array, representation of the maze where ' ' indicates a path, '#' indicates a wall,
             's' is the start, and 'e' is the end.
     """
-    # Check if input maze txt file exists
-    if not os.path.isfile(file_path):
+    try:
+        # Check if input maze txt file exists
+        if not os.path.isfile(file_path):
+            print(f"{file_path} is not a valid file path")
+            exit(0)
+
+        # Read in the file
+        with open(file_path, 'r') as file:
+            lines = file.readlines() # Read in the lines of the file
+
+        lines = [line.strip() for line in lines] # Strip the whitespace from each line
+
+        maze = np.array([list(line) for line in lines]) # Create 2D numpy array
+    except:
         print(f"{file_path} is not a valid file path")
         exit(0)
-
-    # Read in the file
-    with open(file_path, 'r') as file:
-        lines = file.readlines() # Read in the lines of the file
-
-    lines = [line.strip() for line in lines] # Strip the whitespace from each line
-
-    maze = np.array([list(line) for line in lines]) # Create 2D numpy array
 
     return maze
 
