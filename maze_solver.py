@@ -150,7 +150,7 @@ def mat_to_graph(bin_mat):
     return graph
 
 
-def dijkstras_algorithm(graph, start_node, maze_mat_to_plot, vis_flag):
+def dijkstras_algorithm(graph, start_node, end_pos, maze_mat_to_plot, vis_flag):
     """
     Implement Dijkstra's algorithm to find the shortest path through the maze from start to end.
     
@@ -174,7 +174,7 @@ def dijkstras_algorithm(graph, start_node, maze_mat_to_plot, vis_flag):
         # Update maze matrix, and plot visited node.
             if (maze_mat_to_plot[curr_node.x][curr_node.y] == ' '):
                 maze_mat_to_plot[curr_node.x][curr_node.y] = 'v'
-                plot_maze(maze_mat_to_plot, 0.01, 0, 0)
+                plot_maze(maze_mat_to_plot, 0.2, 0, 0)
 
         for neighbor in curr_node.edges:
 
@@ -184,6 +184,8 @@ def dijkstras_algorithm(graph, start_node, maze_mat_to_plot, vis_flag):
                 neighbor.prev_node = curr_node # Update the best path
                 if neighbor.visited == False:
                     pq.push(neighbor)
+            if curr_node.x == end_pos[0] and curr_node.y == end_pos[1]:
+                return graph
                 
 
     return graph
@@ -192,9 +194,14 @@ def dijkstras_algorithm(graph, start_node, maze_mat_to_plot, vis_flag):
 def graph_to_txt(com_graph, end_pos, maze, path_name):
 
     cur_node = com_graph.get_node(end_pos[0], end_pos[1]).prev_node     # Set current node to node along shortest path from end_pos to start_pos
+    if type(cur_node) != Node:                                          # No path from start node to end node so exit
+        print("No path from start to end node")
+        plt.show(block=True)
+        exit(0)
     while cur_node != cur_node.prev_node:                               # Loop through shortest path nodes
         maze[cur_node.x][cur_node.y] = 'x'                              # Set character along path to 'x'
         cur_node = cur_node.prev_node                                   # Go to next node along path
+
     maze_str = ''
 
     for i in maze:                                                      # Concatenate matrix into single string
@@ -301,7 +308,7 @@ com_graph = None # Completed Graph
 maze_mat_to_plot = maze_mat.copy() # Make a copy of maze matrix primarily for plotting the matrix
 
 if selected_algo == 'dijkstra':
-    com_graph = dijkstras_algorithm(graph, start_pos, maze_mat_to_plot, vis_flag)
+    com_graph = dijkstras_algorithm(graph, start_pos, end_pos, maze_mat_to_plot, vis_flag)
 elif selected_algo == 'astar':
     pass
     # TODO: 
@@ -315,5 +322,7 @@ print(com_graph)
 com_maze = graph_to_txt(com_graph, end_pos, maze_mat, out_path)
 
 # Plot the solved maze with best path
-if vis_flag == True:
-    plot_maze(com_maze, 5, 0, 0)
+#if vis_flag == True:
+#    plot_maze(com_maze, 5, 0, 0)
+
+plt.show(block=True)
