@@ -322,7 +322,6 @@ print(com_graph)
 com_maze = graph_to_txt(com_graph, end_pos, maze_mat, out_path)
 
 # Plot the solved maze with best path
-#if vis_flag == True:
-#    plot_maze(com_maze, 5, 0, 0)
-
-plt.show(block=True)
+if vis_flag:
+    plot_maze(com_maze, 0, 0, 0)
+    plt.show(block=True)
