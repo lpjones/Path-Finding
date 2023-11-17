@@ -12,10 +12,30 @@ class Node(object):
         self.visited = visited # 1 if true
         self.edges = [] # Neighbors of Node
         self.prev_node = prev_node # Previous node in the current best path
+    
+    def __lt__(self, other):
+        return self.distance < other.distance
+    
+class A_Node(object):
+    def __init__(self, x, y, distance=float('inf'), prev_node=None, visited=False, end_pos=(0, 0)):
+        self.x = x                  # Rows
+        self.y = y                  # Columns
+        self.distance = distance    # Distance from start node
+        self.visited = visited      # 1 if true
+        self.edges = []             # Neighbors of Node
+        self.prev_node = prev_node  # Previous node in the current best path
+        self.end_pos = end_pos      # Keeps track of end position for astar algorithm
+    
+    def __lt__(self, other):
+        cost_self = self.distance + abs(self.x - self.end_pos[0]) + abs(self.y - self.end_pos[1])
+        cost_other = other.distance + abs(other.x - other.end_pos[0]) + abs(other.y - other.end_pos[1])
+        return cost_self < cost_other
 
 class Graph(object):
-    def __init__(self):
+    def __init__(self, algo, end_pos):
         self.nodes = []
+        self.algo = algo
+        self.end_pos = end_pos
 
     def __str__(self):
         graph_str = ''
@@ -46,7 +66,10 @@ class Graph(object):
             if node.x == x and node.y == y:
                 return
         # If node not already in graph, append
-        new_node = Node(x, y, distance, visited)
+        if self.algo == 'dijkstra':
+            new_node = Node(x, y, distance, visited)
+        elif self.algo == 'astar':
+            new_node = A_Node(x, y, distance=distance, visited=visited, prev_node=None,  end_pos=self.end_pos)
         self.nodes.append(new_node)
 
     def append_edge(self, node_1, node_2):
@@ -57,13 +80,6 @@ class PriorityQueue(object):
     def __init__(self):
         self.queue = []
  
-    def __str__(self):
-        return ' '.join([str(i) for i in self.queue])
- 
-    # for checking if the queue is empty
-    def isEmpty(self):
-        return len(self.queue) == 0
- 
     # for inserting an element in the queue
     def push(self, data):
         self.queue.append(data)
@@ -73,13 +89,13 @@ class PriorityQueue(object):
         try:
             min_node = 0
             for i in range(len(self.queue)):
-                if self.queue[i].distance < self.queue[min_node].distance:
+                if self.queue[i] < self.queue[min_node]:
                     min_node = i
             item = self.queue[min_node]
             del self.queue[min_node]
             return item
         except IndexError:
-            print()
+            print("Index Error")
             exit()
 
 def read_maze(file_path):
@@ -121,23 +137,11 @@ def binary_maze(maze_mat):
                 end = (r, c)
     return bin_mat, start, end
 
-
-def a_star_algorithm(maze):
-    """
-    Implement the A* algorithm to find the shortest path through the maze from start to end.
-    
-    Parameters:
-    - maze: 2D numpy array, the maze to navigate.
-    
-    Add more parameters if you see fit
-    """
-    pass  # Your code here
-
-def mat_to_graph(bin_mat):
-    graph = Graph()
+def mat_to_graph(bin_mat, algo, end_pos):
+    graph = Graph(algo, end_pos)
     for r, row in enumerate(bin_mat): # Loop through each row of binary matrix
         for c, val in enumerate(row): # Looko at value in bin_mat[][]
-            if val == 0: 
+            if val == 0:
                 graph.append_node(r, c, distance=float('inf'), visited=False)  # Append the node
                 curr_node = graph.get_node(r, c) # Get the node you just appended
                 if bin_mat[r + 1][c] == 0: # Look to below of curr_node for neighbors
@@ -146,11 +150,10 @@ def mat_to_graph(bin_mat):
                 if bin_mat[r][c + 1] == 0: # Look to the right of curr_node for neighbors
                     graph.append_node(r, c + 1, distance=float('inf'), visited=False)
                     graph.append_edge(curr_node, graph.get_node(r, c + 1))
-            
     return graph
 
 
-def dijkstras_algorithm(graph, start_node, end_pos, maze_mat_to_plot, vis_flag):
+def dijkstras_astar_algorithm(graph, start_node, end_pos, maze_mat_to_plot, vis_flag):
     """
     Implement Dijkstra's algorithm to find the shortest path through the maze from start to end.
     
@@ -192,9 +195,8 @@ def dijkstras_algorithm(graph, start_node, end_pos, maze_mat_to_plot, vis_flag):
 
 # Writes the path onto txt file of end_pos to start_pos
 def graph_to_txt(com_graph, end_pos, maze, path_name):
-
     cur_node = com_graph.get_node(end_pos[0], end_pos[1]).prev_node     # Set current node to node along shortest path from end_pos to start_pos
-    if type(cur_node) != Node:                                          # No path from start node to end node so exit
+    if type(cur_node) != Node and type(cur_node) != A_Node:                                          # No path from start node to end node so exit
         print("No path from start to end node")
         plt.show(block=True)
         exit(0)
@@ -302,21 +304,16 @@ maze_mat = read_maze(path_name)
 
 bin_mat, start_pos, end_pos = binary_maze(maze_mat)
 
-graph = mat_to_graph(bin_mat)
+graph = mat_to_graph(bin_mat, selected_algo, end_pos)
 
-com_graph = None # Completed Graph
 maze_mat_to_plot = maze_mat.copy() # Make a copy of maze matrix primarily for plotting the matrix
 
-if selected_algo == 'dijkstra':
-    com_graph = dijkstras_algorithm(graph, start_pos, end_pos, maze_mat_to_plot, vis_flag)
-elif selected_algo == 'astar':
-    pass
-    # TODO: 
+
+com_graph = dijkstras_astar_algorithm(graph, start_pos, end_pos, maze_mat_to_plot, vis_flag)
+
 
 out_path = os.path.splitext(os.path.basename(path_name))[0] + '_out.txt' # add '_out' for output txt name
 graph_to_txt(com_graph, end_pos, maze_mat, out_path)
-
-print(com_graph)
 
 # Output solved maze txt file
 com_maze = graph_to_txt(com_graph, end_pos, maze_mat, out_path)
