@@ -251,7 +251,7 @@ def plot_maze(maze, delay):
                 plt.gca().add_patch(red_tri)
 
             elif maze[y][x] == 'v': # Plot the visited nodes as yellow circles
-                yellow_circ = Circle((x, y), radius = 0.15, color = 'yellow')
+                yellow_circ = Circle((x, y), radius = 0.15, color = 'blue')
                 plt.gca().add_patch(yellow_circ)
 
             elif maze[y][x] == 'x': # Plot the best path as green circles

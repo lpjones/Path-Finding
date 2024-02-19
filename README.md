@@ -2,9 +2,17 @@ Completed by lpjones and ryuliou
 
 # Maze Solver
 # Goals
-Solve a maze using either Dijkstra's or the A-star algorithm and display how the algorithm solves it. Below shows the A-star algorithm solving a maze.
+Solve a maze using both Dijkstra's and the A-star algorithm.
 
-![](Maze_Solver.gif)
+Dijkstra's Algorithm
+
+![](Maze_solver_dijkstra.gif)
+
+A-star Algorithm
+
+![](Maze_Solver_astar.gif)
+
+
 
 # How to use
 Download yolov3.weights file at https://pjreddie.com/media/files/yolov3.weights and move the file to the yolo_files/ folder
