@@ -1,6 +1,6 @@
-Completed by ryuliou and lpjones
+Completed by lpjones and ryuliou
 
-# EEC174 AY Project A2: Path Finding
+# Maze Solver
 
 # How to use
 Download yolov3.weights file at https://pjreddie.com/media/files/yolov3.weights and move the file to the yolo_files/ folder
