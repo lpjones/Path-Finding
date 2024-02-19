@@ -2,7 +2,7 @@ Completed by lpjones and ryuliou
 
 # Maze Solver
 # Goals
-Solve a maze using both Dijkstra's and the A-star algorithm.
+Solve a maze using both Dijkstra's and the A-star shortest path algorithms.
 
 Dijkstra's Algorithm
 
